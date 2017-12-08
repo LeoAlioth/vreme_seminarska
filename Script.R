@@ -1,0 +1,1 @@
+data = read.table("podatkiSem1.txt", header = TRUE, sep = ",");
