@@ -1,0 +1,26 @@
+PM10:
+
+Autumn - Low PM10
+Spring, Summer - High PM10
+https://www.ncbi.nlm.nih.gov/pubmed/25096488
+
+Cold seasons - High PM10
+Warm seasons - Low PM10
+http://www.sciencedirect.com/science/article/pii/S1672251507602814
+
+INDOOR STUDY
+Winter season - High PM10 (reason: heating, indoor activity)
+https://www.sciencedirect.com/science/article/pii/S0360132311002320
+
+
+O3:
+
+Weekend - High O3
+Weekday - Low O3
+August, September - High O3
+https://www.ncbi.nlm.nih.gov/pubmed/27572541
+
+Pre-monsoon (Mar, Apr, May) - High O3
+During monsoon (Jun, Jul, Aug, Sep) - Low O3
+No difference between weekend/weekday
+https://www.sciencedirect.com/science/article/pii/S2468203917301504
