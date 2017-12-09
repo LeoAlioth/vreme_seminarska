@@ -13,10 +13,14 @@ getSeason <- function(DATES) {
         ifelse (d >= SS & d < FE, "Poletje", "Jesen")))
 }
 
-getO3concentration <- function(d) {
-     ifelse (d >= 0 & d < 60, "NIZKA",
-      ifelse (d >= 60 & d < 120, "SREDNJA",
-        ifelse (d >= 120 & d < 180, "VISOKA", "EKSTREMNA")))
+getO3concentration <- function(o3) {
+     ifelse (o3 >= 0 & o3 < 60, "NIZKA",
+      ifelse (o3 >= 60 & o3 < 120, "SREDNJA",
+        ifelse (o3 >= 120 & o3 < 180, "VISOKA", "EKSTREMNA")))
+}
+
+getPM10concentration <- function(pm10) {
+     ifelse (pm10 <= 35.0, "NIZKA", "VISOKA")
 }
 
 # -------------------------------------------------------------------------------------------------- Funkcije / data setup
@@ -35,10 +39,14 @@ data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sre
 #Add attribute Season
 data$Season = factor(getSeason(data$Datum), levels=c("Zima", "Pomlad", "Poletje", "Jesen"));
 
-#Add attribute O3Level
+#Add attribute O3Class 
 data$O3Class = factor(getO3concentration(data$O3), levels=c("NIZKA", "SREDNJA", "VISOKA", "EKSTREMNA"));
 
+#Add attribute PM10Class 
+data$PM10Class = factor(getPM10concentration(data$PM10), levels=c("NIZKA", "VISOKA"));
+
 data$O3 <- NULL;
+data$PM10 <- NULL;
 
 #ucnamnozica = data[format(data$Datum, "%Y") <= "2014",];
 #testnamnozica = data[format(data$Datum, "%Y") > "2014",];
@@ -61,17 +69,28 @@ sort(attrEval(O3Class ~ ., ucnamnozica, "Relief"), decreasing = TRUE)
 sort(attrEval(O3Class ~ ., ucnamnozica, "ReliefFequalK"), decreasing = TRUE)
 sort(attrEval(O3Class ~ ., ucnamnozica, "ReliefFexpRank"), decreasing = TRUE)
 
+sort(attrEval(PM10Class ~ ., ucnamnozica, "InfGain"), decreasing = TRUE)
+sort(attrEval(PM10Class ~ ., ucnamnozica, "Gini"), decreasing = TRUE)
+sort(attrEval(PM10Class ~ ., ucnamnozica, "GainRatio"), decreasing = TRUE)
+sort(attrEval(PM10Class ~ ., ucnamnozica, "MDL"), decreasing = TRUE)
+sort(attrEval(PM10Class ~ ., ucnamnozica, "Relief"), decreasing = TRUE)
+sort(attrEval(PM10Class ~ ., ucnamnozica, "ReliefFequalK"), decreasing = TRUE)
+sort(attrEval(PM10Class ~ ., ucnamnozica, "ReliefFexpRank"), decreasing = TRUE)
+
 source("wrapper.R");
 wrapper(ucnamnozica, className="O3Class", classModel="tree", folds=10)
+wrapper(ucnamnozica, className="PM10Class", classModel="tree", folds=10)
 
 
 #----------------------------------------------------------------------------------- ocenjevanje atributov / predikcija
 
 #rpart decision tree
 model <- rpart(O3Class ~ ., data = ucnamnozica);
+model <- rpart(PM10Class ~ ., data = ucnamnozica);
 
 #CORElearn decision tree
 model <- CoreModel(O3Class ~ ., data = ucnamnozica, model="tree");
+model <- CoreModel(PM10Class ~ ., data = ucnamnozica, model="tree");
 
 #CORElearn bayes
 model <- CoreModel(O3Class ~ ., model="bayes");
