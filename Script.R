@@ -37,8 +37,11 @@ data$Glob_sevanje_min <- NULL;
 #Change date to Date class
 data$Datum = as.Date(data$Datum);
 
+#Add attribute Weekday
+data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "èetrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
+
 #Add attribute Month
-data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "october", "november", "december"));
+data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "october", "november", "december"), ordered=TRUE);
 
 #Add attribute Year
 data$Year = as.numeric(format(data$Datum, "%Y"));
@@ -56,8 +59,8 @@ data$Datum <- NULL;
 data$O3 <- NULL;
 data$PM10 <- NULL;
 
-ucnamnozica = data[data$Year <= 2015,];
-testnamnozica = data[data$Year > 2015,];
+ucnamnozica = data[data$Year <= 2014,];
+testnamnozica = data[data$Year > 2014,];
 
 #----------------------------------------------------------------------------------- data setup / ocenjevanje atributov
 
@@ -77,7 +80,7 @@ sort(attrEval(PM10Class ~ ., ucnamnozica, "Relief"), decreasing = TRUE)
 sort(attrEval(PM10Class ~ ., ucnamnozica, "ReliefFequalK"), decreasing = TRUE)
 sort(attrEval(PM10Class ~ ., ucnamnozica, "ReliefFexpRank"), decreasing = TRUE)
 
-wrapper(ucnamnozica, className="O3Class", classModel="tree", folds=10)
+wrapper(ucnamnozica, className="O3Class", classModel="rf", folds=10)
 wrapper(ucnamnozica, className="PM10Class", classModel="tree", folds=10)
 
 
@@ -86,17 +89,17 @@ wrapper(ucnamnozica, className="PM10Class", classModel="tree", folds=10)
 #O3Class
 
 #rpart decision tree
-model <- rpart(O3Class ~ ., data = ucnamnozica);
+model <- rpart(O3Class ~ Glob_sevanje_max + Temperatura_lokacija_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_max + Pritisk_max + Hitrost_vetra_max + Vlaga_max + Padavine_mean + Temperatura_Krvavec_min + Padavine_sum + Pritisk_mean, data = ucnamnozica);
 
 #CORElearn decision tree
-model <- CoreModel(O3Class ~ ., data = ucnamnozica, model="tree");
+model <- CoreModel(O3Class ~ Glob_sevanje_max + Temperatura_lokacija_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_max + Pritisk_max + Hitrost_vetra_max + Vlaga_max + Padavine_mean + Temperatura_Krvavec_min + Padavine_sum + Pritisk_mean, data = ucnamnozica, model="tree");
 
 #CORElearn bayes
-model <- CoreModel(O3Class ~ ., model="bayes");
+model <- CoreModel(O3Class ~ Glob_sevanje_max + Pritisk_max + Month + Postaja + PM10Class + Year + Sunki_vetra_mean + Temperatura_Krvavec_min + Vlaga_min, data=ucnamnozica, model="bayes");
 
 #CORElearn knn
 for(k in 1:100) {
-	model <- CoreModel(O3Class ~ ., data = ucnamnozica, model="knn", kInNN=k);
+	model <- CoreModel(O3Class ~ Month + Temperatura_lokacija_max + Vlaga_max + Sunki_vetra_max + Pritisk_max + Sunki_vetra_min + Padavine_mean + Glob_sevanje_mean + Weekday + Temperatura_Krvavec_min + Sunki_vetra_mean + Temperatura_Krvavec_mean + Hitrost_vetra_max + Vlaga_min + Padavine_sum + PM10Class + Temperatura_Krvavec_max + Glob_sevanje_max + Season, data = ucnamnozica, model="knn", kInNN=k);
 	observed <- testnamnozica$O3Class;
 	predicted <- predict(model, testnamnozica, type = "class");
 	t <- table(observed, predicted);
@@ -114,17 +117,17 @@ sum(diag(t)) / sum(t);
 
 #PM10Class
 #rpart decision tree
-model <- rpart(PM10Class ~ ., data = ucnamnozica);
+model <- rpart(PM10Class ~ Temperatura_lokacija_max + Hitrost_vetra_min + O3Class + Month + Year + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, data = ucnamnozica);
 
 #CORElearn decision tree
-model <- CoreModel(PM10Class ~ ., data = ucnamnozica, model="tree");
+model <- CoreModel(PM10Class ~ Temperatura_lokacija_max + Hitrost_vetra_min + O3Class + Month + Year + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, data = ucnamnozica, model="tree");
 
 #CORElearn bayes
-model <- CoreModel(PM10Class~ ., model="bayes");
+model <- CoreModel(PM10Class ~ Month + Postaja + Sunki_vetra_max + Padavine_sum + Vlaga_max + Padavine_mean + Year + Pritisk_max, data=ucnamnozica, model="bayes");
 
 #CORElearn knn
 for(k in 1:100) {
-	model <- CoreModel(PM10Class~ ., data = ucnamnozica, model="knn", kInNN=k);
+	model <- CoreModel(PM10Class~ Temperatura_lokacija_max + Temperatura_Krvavec_max + Sunki_vetra_min + Hitrost_vetra_min + Temperatura_lokacija_min + Temperatura_Krvavec_mean + Glob_sevanje_mean + Postaja + Padavine_mean + Glob_sevanje_max + Padavine_sum + Temperatura_lokacija_mean + Temperatura_Krvavec_min + Hitrost_vetra_mean + Hitrost_vetra_max + O3Class + Pritisk_mean + Year + Month + Vlaga_min + Vlaga_max + Pritisk_min + Sunki_vetra_max + Sunki_vetra_mean, data = ucnamnozica, model="knn", kInNN=k);
 	observed <- testnamnozica$PM10Class;
 	predicted <- predict(model, testnamnozica, type = "class");
 	t <- table(observed, predicted);
