@@ -1,4 +1,8 @@
-rm(list = ls())
+setwd("GitHub/vreme_seminarska/");
+rm(list = ls());
+library(CORElearn);
+library(rpart);
+source("wrapper.R");
 
 getSeason <- function(DATES) {
     WS <- as.Date("12-21", format = "%m-%d") # Zimski solsticij
@@ -33,8 +37,11 @@ data$Glob_sevanje_min <- NULL;
 #Change date to Date class
 data$Datum = as.Date(data$Datum);
 
-#Add attribute Weekday
-data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "èetrtek", "petek", "sobota", "nedelja"));
+#Add attribute Month
+data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "october", "november", "december"));
+
+#Add attribute Year
+data$Year = as.numeric(format(data$Datum, "%Y"));
 
 #Add attribute Season
 data$Season = factor(getSeason(data$Datum), levels=c("Zima", "Pomlad", "Poletje", "Jesen"));
@@ -45,19 +52,12 @@ data$O3Class = factor(getO3concentration(data$O3), levels=c("NIZKA", "SREDNJA", 
 #Add attribute PM10Class 
 data$PM10Class = factor(getPM10concentration(data$PM10), levels=c("NIZKA", "VISOKA"));
 
+data$Datum <- NULL;
 data$O3 <- NULL;
 data$PM10 <- NULL;
 
-#ucnamnozica = data[format(data$Datum, "%Y") <= "2014",];
-#testnamnozica = data[format(data$Datum, "%Y") > "2014",];
-
-data$Year = as.numeric(format(data$Datum, "%Y"));
-data$Datum <- NULL;
-ucnamnozica = data[data$Year <= "2014",];
-testnamnozica = data[data$Year > "2014",];
-
-library("CORElearn");
-library(rpart);
+ucnamnozica = data[data$Year <= 2015,];
+testnamnozica = data[data$Year > 2015,];
 
 #----------------------------------------------------------------------------------- data setup / ocenjevanje atributov
 
@@ -77,32 +77,65 @@ sort(attrEval(PM10Class ~ ., ucnamnozica, "Relief"), decreasing = TRUE)
 sort(attrEval(PM10Class ~ ., ucnamnozica, "ReliefFequalK"), decreasing = TRUE)
 sort(attrEval(PM10Class ~ ., ucnamnozica, "ReliefFexpRank"), decreasing = TRUE)
 
-source("wrapper.R");
 wrapper(ucnamnozica, className="O3Class", classModel="tree", folds=10)
 wrapper(ucnamnozica, className="PM10Class", classModel="tree", folds=10)
 
 
 #----------------------------------------------------------------------------------- ocenjevanje atributov / predikcija
 
+#O3Class
+
 #rpart decision tree
 model <- rpart(O3Class ~ ., data = ucnamnozica);
-model <- rpart(PM10Class ~ ., data = ucnamnozica);
 
 #CORElearn decision tree
 model <- CoreModel(O3Class ~ ., data = ucnamnozica, model="tree");
-model <- CoreModel(PM10Class ~ ., data = ucnamnozica, model="tree");
 
 #CORElearn bayes
 model <- CoreModel(O3Class ~ ., model="bayes");
 
 #CORElearn knn
-k <- 25;
-model <- CoreModel(O3Class ~ ., data = ucnamnozica, model="knn", kInNN=k);
+for(k in 1:100) {
+	model <- CoreModel(O3Class ~ ., data = ucnamnozica, model="knn", kInNN=k);
+	observed <- testnamnozica$O3Class;
+	predicted <- predict(model, testnamnozica, type = "class");
+	t <- table(observed, predicted);
+	print(k);
+	print(sum(diag(t)) / sum(t));
+}
 
 #CORElearn random forest
 model <- CoreModel(O3Class ~ ., data = ucnamnozica, model="rf");
 
 observed <- testnamnozica$O3Class;
+predicted <- predict(model, testnamnozica, type = "class");
+t <- table(observed, predicted);
+sum(diag(t)) / sum(t);
+
+#PM10Class
+#rpart decision tree
+model <- rpart(PM10Class ~ ., data = ucnamnozica);
+
+#CORElearn decision tree
+model <- CoreModel(PM10Class ~ ., data = ucnamnozica, model="tree");
+
+#CORElearn bayes
+model <- CoreModel(PM10Class~ ., model="bayes");
+
+#CORElearn knn
+for(k in 1:100) {
+	model <- CoreModel(PM10Class~ ., data = ucnamnozica, model="knn", kInNN=k);
+	observed <- testnamnozica$PM10Class;
+	predicted <- predict(model, testnamnozica, type = "class");
+	t <- table(observed, predicted);
+	print(k);
+	print(sum(diag(t)) / sum(t));
+}
+
+#CORElearn random forest
+model <- CoreModel(PM10Class~ ., data = ucnamnozica, model="rf");
+
+observed <- testnamnozica$PM10Class;
 predicted <- predict(model, testnamnozica, type = "class");
 t <- table(observed, predicted);
 sum(diag(t)) / sum(t);
