@@ -163,4 +163,72 @@ sum(diag(t)) / sum(t);
 
 #----------------------------------------------------------------------regresija
 
+#------------------------------------------------ regression evaluation equations
+mae <- function(observed, predicted)
+{
+	mean(abs(observed - predicted))
+}
+
+rmae <- function(observed, predicted, mean.val) 
+{  
+	sum(abs(observed - predicted)) / sum(abs(observed - mean.val))
+}
+
+mse <- function(observed, predicted)
+{
+	mean((observed - predicted)^2)
+}
+
+rmse <- function(observed, predicted, mean.val) 
+{  
+	sum((observed - predicted)^2)/sum((observed - mean.val)^2)
+}
+
+#----------------------------------------------------------attribute setup
+data = read.table("podatkiSem1.txt", header = TRUE, sep = ",");
+
+
+#Remove attribute Glob_sevanje_min as it's always 0
+data$Glob_sevanje_min <- NULL;
+
+#Change date to Date class
+data$Datum = as.Date(data$Datum);
+
+#Add attribute Weekday
+data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "èetrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
+
+#Add attribute Month
+data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "october", "november", "december"), ordered=TRUE);
+
+#Add attribute Year
+data$Year = as.numeric(format(data$Datum, "%Y"));
+
+#Add attribute Season
+data$Season = factor(getSeason(data$Datum), levels=c("Zima", "Pomlad", "Poletje", "Jesen"));
+
+ucnamnozica = data[data$Year <= 2014,];
+testnamnozica = data[data$Year > 2014,];
+
+observed = testnamnozica$O3;
+
+model <- rpart(ucnamnozica$O3 ~ Month + Temperatura_lokacija_max + Vlaga_max + Sunki_vetra_max + Pritisk_max + Sunki_vetra_min + Padavine_mean + Glob_sevanje_mean + Weekday + Temperatura_Krvavec_min + Sunki_vetra_mean + Temperatura_Krvavec_mean + Hitrost_vetra_max + Vlaga_min + Padavine_sum + Temperatura_Krvavec_max + Glob_sevanje_max + Season, ucnamnozica, minsplit = 50, cp = 0.01);
+predicted <- predict(model, testnamnozica);
+mae(observed, predicted);
+rmae(observed, predicted, mean(testnamnozica$O3));
+mse(observed, predicted);
+rmse(observed, predicted, mean(testnamnozica$O3));
+
+observed = testnamnozica$PM10;
+
+model <- rpart(ucnamnozica$PM10 ~ Temperatura_lokacija_max + Hitrost_vetra_min + Month + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, ucnamnozica, minsplit = 100, cp = 0.001);
+predicted <- predict(model, testnamnozica);
+mae(observed, predicted);
+rmae(observed, predicted, mean(testnamnozica$PM10));
+mse(observed, predicted);
+rmse(observed, predicted, mean(testnamnozica$PM10));
+
+
+plot(model);text(model, pretty = 0);
+
+rpart.control()
 
