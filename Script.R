@@ -1,8 +1,7 @@
 setwd("GitHub/vreme_seminarska/");
 rm(list = ls());
 library(CORElearn);
-library(rpart);
-library(ipred);
+library(rpart);library(zoo)
 source("wrapper.R");
 
 getSeason <- function(DATES) {
@@ -56,6 +55,8 @@ data$O3Class = factor(getO3concentration(data$O3), levels=c("NIZKA", "SREDNJA", 
 #Add attribute PM10Class 
 data$PM10Class = factor(getPM10concentration(data$PM10), levels=c("NIZKA", "VISOKA"));
 
+data$Year_mon = as.yearmon(data$Datum)
+
 data$Datum <- NULL;
 data$O3 <- NULL;
 data$PM10 <- NULL;
@@ -63,7 +64,42 @@ data$PM10 <- NULL;
 ucnamnozica = data[data$Year <= 2014,];
 testnamnozica = data[data$Year > 2014,];
 
-#----------------------------------------------------------------------------------- data setup / ocenjevanje atributov
+#----------------------------------------------------------------------------------- data setup / vizualizacija
+
+par(mfrow=c(1, 2))
+
+#Min, mean, max O3 by year
+plot(1, ylim=c(0,250), yaxs="i", xlim=range(data$Year), xaxs="i", axes=FALSE, xlab="", ylab="Koncentracija O3", main="Koncentracija O3 po letih")
+mtext("Min (zelena), Mean (modra), Max (rdeèa)")
+box()
+axis(1, at=c(2013:2016))
+axis(2, at=seq(0, 250, by=50))
+lines(aggregate(O3 ~ Year, data = data, max), col="red")
+lines(aggregate(O3 ~ Year, data = data, mean), col="blue")
+lines(aggregate(O3 ~ Year, data = data, min), col="green")
+
+#Min, mean, max PM10 by year
+plot(1, ylim=c(0,150), yaxs="i", xlim=range(data$Year), xaxs="i", axes=FALSE, xlab="", ylab="Koncentracija PM10", main="Koncentracija PM10 po letih")
+mtext("Min (zelena), Mean (modra), Max (rdeèa)")
+box()
+axis(1, at=c(2013:2016))
+axis(2, at=seq(0, 150, by=25))
+lines(aggregate(PM10 ~ Year, data = data, max), col="red")
+lines(aggregate(PM10 ~ Year, data = data, mean), col="blue")
+lines(aggregate(PM10 ~ Year, data = data, min), col="green")
+
+#Glob_sevanje_mean mean by month
+plot(aggregate(Glob_sevanje_mean ~ Year_mon, data = data[data$Postaja=="Ljubljana",], mean), type="l", col="red", ylab="Raven globalnega sevanja", xlab="", main="Povpreèna raven globalnega sevanja po mesecih")
+lines(aggregate(Glob_sevanje_mean ~ Year_mon, data = data[data$Postaja=="Koper",], mean), col="blue")
+mtext("Rdeèa: Ljubljana, modra: Koper")
+
+par(mfrow=c(1, 2))
+hist(data$O3, xlab="Koncentracija O3", main="Distribucija koncentracije O3")
+box()
+hist(data$PM10, xlab="Koncentracija PM10", main="Distribucija koncentracije PM10")
+box()
+
+#----------------------------------------------------------------------------------- vizualizacija / ocenjevanje atributov
 
 sort(attrEval(O3Class ~ ., ucnamnozica, "InfGain"), decreasing = TRUE)
 sort(attrEval(O3Class ~ ., ucnamnozica, "Gini"), decreasing = TRUE)
@@ -161,7 +197,7 @@ sum(diag(t)) / sum(t);
 #plot(dt);
 #text(dt, pretty = 0);
 
-#----------------------------------------------------------------------regresija
+-#----------------------------------------------------------------------regresija
 
 #------------------------------------------------ regression evaluation equations
 mae <- function(observed, predicted)
@@ -231,4 +267,5 @@ rmse(observed, predicted, mean(testnamnozica$PM10));
 plot(model);text(model, pretty = 0);
 
 rpart.control()
+
 
