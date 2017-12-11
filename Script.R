@@ -218,8 +218,9 @@ rm(list = ls());
 library(CORElearn);
 library(rpart);
 library(ipred);
-library(randomForest)
-library(nnet)
+library(randomForest);
+library(nnet);
+library(kknn);
 source("wrapper.R");
 
 #------------------------------------------------ regression evaluation equations
@@ -369,7 +370,7 @@ testnamnozica$PM10 <- NULL;
 validacijskamnozica$O3 <- NULL;
 validacijskamnozica$PM10 <- NULL;
 
-rt.core <- CoreModel(PM10 ~ Temperatura_lokacija_max + Hitrost_vetra_min + Month + Year + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, data=ucnamnozica, model="regTree", modelTypeReg = 3)
+model <- CoreModel(PM10 ~ Temperatura_lokacija_max + Hitrost_vetra_min + Month + Year + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, data=ucnamnozica, model="regTree", modelTypeReg = 3)
 
 predicted <- predict(model, testnamnozica);
 mae(observed, predicted);
@@ -383,7 +384,7 @@ rmae(observed2, predicted, mean(observed2));
 mse(observed2, predicted);
 rmse(observed2, predicted, mean(observed2));
 
-#---------------------------------------------------------------------------------O3 random forest
+#---------------------------------------------------------------------------------O3 knn
 
 ucnamnozica = data[data$Year <= 2014,];
 testnamnozica = data[data$Year > 2014 & data$Year <= 2015, ];
@@ -393,26 +394,30 @@ observed = testnamnozica$O3;
 observed2 = validacijskamnozica$O3;
 
 ucnamnozica$PM10 <- NULL;
-testnamnozica$O3 <- NULL;
-testnamnozica$PM10 <- NULL;
-validacijskamnozica$O3 <- NULL;
-validacijskamnozica$PM10 <- NULL;
+#testnamnozica$O3 <- NULL;
+#testnamnozica$PM10 <- NULL;
+#validacijskamnozica$O3 <- NULL;
+#validacijskamnozica$PM10 <- NULL;
 
-model <- CoreModel(O3 ~ Month + Temperatura_lokacija_max + Vlaga_max + Sunki_vetra_max + Pritisk_max + Sunki_vetra_min + Padavine_mean + Glob_sevanje_mean + Weekday + Temperatura_Krvavec_min + Sunki_vetra_mean + Temperatura_Krvavec_mean + Hitrost_vetra_max + Vlaga_min + Padavine_sum + Temperatura_Krvavec_max + Glob_sevanje_max + Season, data=ucnamnozica, model="regTree", modelTypeReg = 3)
+model <- kknn(O3 ~ Month + Temperatura_lokacija_max + Vlaga_max + Sunki_vetra_max + Pritisk_max + Sunki_vetra_min + Padavine_mean + Glob_sevanje_mean + Weekday + Temperatura_Krvavec_min + Sunki_vetra_mean + Temperatura_Krvavec_mean + Hitrost_vetra_max + Vlaga_min + Padavine_sum + Temperatura_Krvavec_max + Glob_sevanje_max + Season, ucnamnozica, testnamnozica, k=70);
 
-predicted <- predict(model, testnamnozica);
+predicted <- fitted(model);
+
 mae(observed, predicted);
-rmae(observed, predicted, mean(observed));
+rmae(observed, predicted, mean(ucnamnozica$O3));
 mse(observed, predicted);
-rmse(observed, predicted, mean(observed));
+rmse(observed, predicted, mean(ucnamnozica$O3));
 
-predicted <- predict(model, validacijskamnozica);
+model <- kknn(O3 ~ Month + Temperatura_lokacija_max + Vlaga_max + Sunki_vetra_max + Pritisk_max + Sunki_vetra_min + Padavine_mean + Glob_sevanje_mean + Weekday + Temperatura_Krvavec_min + Sunki_vetra_mean + Temperatura_Krvavec_mean + Hitrost_vetra_max + Vlaga_min + Padavine_sum + Temperatura_Krvavec_max + Glob_sevanje_max + Season, ucnamnozica, validacijskamnozica, k=70);
+
+predicted <- fitted(model);
+
 mae(observed2, predicted);
-rmae(observed2, predicted, mean(observed2));
+rmae(observed2, predicted, mean(validacijskamnozica$O3));
 mse(observed2, predicted);
-rmse(observed2, predicted, mean(observed2));
+rmse(observed2, predicted, mean(validacijskamnozica$O3));
 
-#----------------------------------------------------------------------------------PM10 random forest
+#----------------------------------------------------------------------------------PM10 knn
 
 ucnamnozica = data[data$Year <= 2014,];
 testnamnozica = data[data$Year > 2014 & data$Year <= 2015, ];
@@ -422,26 +427,28 @@ observed = testnamnozica$PM10;
 observed2 = validacijskamnozica$PM10;
 
 ucnamnozica$O3 <- NULL;
-testnamnozica$O3 <- NULL;
-testnamnozica$PM10 <- NULL;
-validacijskamnozica$O3 <- NULL;
-validacijskamnozica$PM10 <- NULL;
+#testnamnozica$O3 <- NULL;
+#testnamnozica$PM10 <- NULL;
+#validacijskamnozica$O3 <- NULL;
+#validacijskamnozica$PM10 <- NULL;
 
-rt.core <- CoreModel(PM10 ~ Temperatura_lokacija_max + Hitrost_vetra_min + Month + Year + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, data=ucnamnozica, model="regTree", modelTypeReg = 3)
+model <- kknn(PM10 ~ Temperatura_lokacija_max + Hitrost_vetra_min + Month + Year + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, ucnamnozica, testnamnozica, k=100);
 
-predicted <- predict(model, testnamnozica);
+predicted <- fitted(model);
+
 mae(observed, predicted);
-rmae(observed, predicted, mean(observed));
+rmae(observed, predicted, mean(ucnamnozica$PM10));
 mse(observed, predicted);
-rmse(observed, predicted, mean(observed));
+rmse(observed, predicted, mean(ucnamnozica$PM10));
 
-predicted <- predict(model, validacijskamnozica);
+model <- kknn(PM10 ~ Temperatura_lokacija_max + Hitrost_vetra_min + Month + Year + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, ucnamnozica, validacijskamnozica, k=100);
+
+predicted <- fitted(model);
+
 mae(observed2, predicted);
-rmae(observed2, predicted, mean(observed2));
+rmae(observed2, predicted, mean(validacijskamnozica$PM10));
 mse(observed2, predicted);
-rmse(observed2, predicted, mean(observed2));
-
-
+rmse(observed2, predicted, mean(validacijskamnozica$PM10));
 plot(model);text(model, pretty = 0);
 
 rpart.control()
