@@ -40,7 +40,7 @@ data$Glob_sevanje_min <- NULL;
 data$Datum = as.Date(data$Datum);
 
 #Add attribute Weekday
-data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "cetrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
+data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "èetrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
 
 #Add attribute Month
 data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "oktober", "november", "december"), ordered=TRUE);
@@ -62,7 +62,7 @@ data$Year_mon = as.yearmon(data$Datum)
 data$Datum <- NULL;
 
 ucnamnozica = data[data$Year <= 2014,];
-testnamnozica = data[data$Year > 2014 && data$Year <= 2015, ];
+testnamnozica = data[which(data$Year > 2014 & data$Year <= 2015), ];
 validacijskamnozica = data[data$Year > 2015,];
 
 #----------------------------------------------------------------------------------- data setup / vizualizacija
@@ -155,6 +155,8 @@ for(k in 1:100) {
 	print(sum(diag(t)) / sum(t));
 }
 
+model <- CoreModel(O3Class ~ Month + Temperatura_lokacija_max + Vlaga_max + Sunki_vetra_max + Pritisk_max + Sunki_vetra_min + Padavine_mean + Glob_sevanje_mean + Weekday + Temperatura_Krvavec_min + Sunki_vetra_mean + Temperatura_Krvavec_mean + Hitrost_vetra_max + Vlaga_min + Padavine_sum + PM10Class + Temperatura_Krvavec_max + Glob_sevanje_max + Season, data = ucnamnozica, model="knn", kInNN=19);
+
 #CORElearn random forest
 model <- CoreModel(O3Class ~ ., data = ucnamnozica, model="rf");
 
@@ -187,6 +189,8 @@ for(k in 1:100) {
 	print(k);
 	print(sum(diag(t)) / sum(t));
 }
+
+model <- CoreModel(PM10Class~ Temperatura_lokacija_max + Temperatura_Krvavec_max + Sunki_vetra_min + Hitrost_vetra_min + Temperatura_lokacija_min + Temperatura_Krvavec_mean + Glob_sevanje_mean + Postaja + Padavine_mean + Glob_sevanje_max + Padavine_sum + Temperatura_lokacija_mean + Temperatura_Krvavec_min + Hitrost_vetra_mean + Hitrost_vetra_max + O3Class + Pritisk_mean + Year + Month + Vlaga_min + Vlaga_max + Pritisk_min + Sunki_vetra_max + Sunki_vetra_mean, data = ucnamnozica, model="knn", kInNN=30);
 
 #CORElearn random forest
 model <- CoreModel(PM10Class~ ., data = ucnamnozica, model="rf");
@@ -262,7 +266,7 @@ data$Glob_sevanje_min <- NULL;
 data$Datum = as.Date(data$Datum);
 
 #Add attribute Weekday
-data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "etrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
+data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "èetrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
 
 #Add attribute Month
 data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "oktober", "november", "december"), ordered=TRUE);
