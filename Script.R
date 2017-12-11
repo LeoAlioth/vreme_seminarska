@@ -98,6 +98,17 @@ plot(aggregate(Glob_sevanje_mean ~ Year_mon, data = data[data$Postaja=="Ljubljan
 lines(aggregate(Glob_sevanje_mean ~ Year_mon, data = data[data$Postaja=="Koper",], mean), col="blue")
 mtext("Rdeèa: Ljubljana, modra: Koper")
 
+#O3 and PM10 by month in 2016
+par(mfrow=c(1, 2))
+plot(aggregate(O3 ~ as.numeric(format(Datum, "%m")), data = data[which(data$Year==2013 & data$Postaja=="Ljubljana"),], mean), axes=F, type="l", col="red", ylab="Raven koncentracije O3", xlab="", main="Povpreèna raven koncentracije O3 v letu 2016")
+axis(1, at=1:12, labels=c("jan", "feb", "mar", "apr", "maj", "jun", "jul", "avg", "sep", "okt", "nov", "dec"))
+axis(2, at=seq(0, 150, by=25))
+box()
+plot(aggregate(PM10 ~ as.numeric(format(Datum, "%m")), data = data[which(data$Year==2013 & data$Postaja=="Ljubljana"),], mean), axes=F, type="l", col="blue", ylab="Raven koncentracije PM10", xlab="", main="Povpreèna raven koncentracije PM10 v letu 2016")
+axis(1, at=1:12, labels=c("jan", "feb", "mar", "apr", "maj", "jun", "jul", "avg", "sep", "okt", "nov", "dec"))
+axis(2, at=seq(0, 60, by=5))
+box();
+
 par(mfrow=c(1, 2))
 hist(data$O3, xlab="Koncentracija O3", main="Distribucija koncentracije O3")
 box()
