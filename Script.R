@@ -65,10 +65,6 @@ ucnamnozica = data[data$Year <= 2014,];
 testnamnozica = data[data$Year > 2014 && data$Year <= 2015, ];
 validacijskamnozica = data[data$Year > 2015,];
 
-testnamnozica$O3 <- NULL;
-testnamnozica$PM10 <- NULL;
-
-
 #----------------------------------------------------------------------------------- data setup / vizualizacija
 
 par(mfrow=c(1, 2))
