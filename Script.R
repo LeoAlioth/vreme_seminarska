@@ -2,7 +2,7 @@ setwd("GitHub/vreme_seminarska/");
 rm(list = ls());
 library(CORElearn);
 library(rpart);
-library(zoo);
+library(ipred);
 source("wrapper.R");
 
 getSeason <- function(DATES) {
@@ -56,52 +56,17 @@ data$O3Class = factor(getO3concentration(data$O3), levels=c("NIZKA", "SREDNJA", 
 #Add attribute PM10Class 
 data$PM10Class = factor(getPM10concentration(data$PM10), levels=c("NIZKA", "VISOKA"));
 
-data$Year_mon = as.yearmon(data$Datum)
-
 data$Datum <- NULL;
-data$O3 <- NULL;
-data$PM10 <- NULL;
 
 ucnamnozica = data[data$Year <= 2014,];
 testnamnozica = data[data$Year > 2014 && data$Year <= 2015, ];
 validacijskamnozica = data[data$Year > 2015,];
 
-#----------------------------------------------------------------------------------- data setup / vizualizacija
+testnamnozica$O3 <- NULL;
+testnamnozica$PM10 <- NULL;
 
-par(mfrow=c(1, 2))
 
-#Min, mean, max O3 by year
-plot(1, ylim=c(0,250), yaxs="i", xlim=range(data$Year), xaxs="i", axes=FALSE, xlab="", ylab="Koncentracija O3", main="Koncentracija O3 po letih")
-mtext("Min (zelena), Mean (modra), Max (rdeèa)")
-box()
-axis(1, at=c(2013:2016))
-axis(2, at=seq(0, 250, by=50))
-lines(aggregate(O3 ~ Year, data = data, max), col="red")
-lines(aggregate(O3 ~ Year, data = data, mean), col="blue")
-lines(aggregate(O3 ~ Year, data = data, min), col="green")
-
-#Min, mean, max PM10 by year
-plot(1, ylim=c(0,150), yaxs="i", xlim=range(data$Year), xaxs="i", axes=FALSE, xlab="", ylab="Koncentracija PM10", main="Koncentracija PM10 po letih")
-mtext("Min (zelena), Mean (modra), Max (rdeèa)")
-box()
-axis(1, at=c(2013:2016))
-axis(2, at=seq(0, 150, by=25))
-lines(aggregate(PM10 ~ Year, data = data, max), col="red")
-lines(aggregate(PM10 ~ Year, data = data, mean), col="blue")
-lines(aggregate(PM10 ~ Year, data = data, min), col="green")
-
-#Glob_sevanje_mean mean by month
-plot(aggregate(Glob_sevanje_mean ~ Year_mon, data = data[data$Postaja=="Ljubljana",], mean), type="l", col="red", ylab="Raven globalnega sevanja", xlab="", main="Povpreèna raven globalnega sevanja po mesecih")
-lines(aggregate(Glob_sevanje_mean ~ Year_mon, data = data[data$Postaja=="Koper",], mean), col="blue")
-mtext("Rdeèa: Ljubljana, modra: Koper")
-
-par(mfrow=c(1, 2))
-hist(data$O3, xlab="Koncentracija O3", main="Distribucija koncentracije O3")
-box()
-hist(data$PM10, xlab="Koncentracija PM10", main="Distribucija koncentracije PM10")
-box()
-
-#----------------------------------------------------------------------------------- vizualizacija / ocenjevanje atributov
+#----------------------------------------------------------------------------------- data setup / ocenjevanje atributov
 
 sort(attrEval(O3Class ~ ., ucnamnozica, "InfGain"), decreasing = TRUE)
 sort(attrEval(O3Class ~ ., ucnamnozica, "Gini"), decreasing = TRUE)
@@ -199,9 +164,15 @@ sum(diag(t)) / sum(t);
 #plot(dt);
 #text(dt, pretty = 0);
 
-#----------------------------------------------------------------------------------- ostalo / regresija
+#----------------------------------------------------------------------regresija
 
-#regression evaluation equations
+rm(list = ls());
+library(CORElearn);
+library(rpart);
+library(ipred);
+source("wrapper.R");
+
+#------------------------------------------------ regression evaluation equations
 mae <- function(observed, predicted)
 {
 	mean(abs(observed - predicted))
@@ -222,8 +193,9 @@ rmse <- function(observed, predicted, mean.val)
 	sum((observed - predicted)^2)/sum((observed - mean.val)^2)
 }
 
-#attribute setup
+#----------------------------------------------------------attribute setup
 data = read.table("podatkiSem1.txt", header = TRUE, sep = ",");
+
 
 #Remove attribute Glob_sevanje_min as it's always 0
 data$Glob_sevanje_min <- NULL;
@@ -243,11 +215,22 @@ data$Year = as.numeric(format(data$Datum, "%Y"));
 #Add attribute Season
 data$Season = factor(getSeason(data$Datum), levels=c("Zima", "Pomlad", "Poletje", "Jesen"));
 
+data$Datum <- NULL;
+
+#---------------------------------------------------------------------------------O3
+
 ucnamnozica = data[data$Year <= 2014,];
 testnamnozica = data[data$Year > 2014 && data$Year <= 2015, ];
 validacijskamnozica = data[data$Year > 2015,];
 
 observed = testnamnozica$O3;
+observed2 = validacijskamnozica$O3;
+
+ucnamnozica$PM10 <- NULL;
+testnamnozica$O3 <- NULL;
+testnamnozica$PM10 <- NULL;
+validacjskamnozica$O3 <- NULL;
+validacijskamnozica$PM10 <- NULL;
 
 model <- rpart(ucnamnozica$O3 ~ Month + Temperatura_lokacija_max + Vlaga_max + Sunki_vetra_max + Pritisk_max + Sunki_vetra_min + Padavine_mean + Glob_sevanje_mean + Weekday + Temperatura_Krvavec_min + Sunki_vetra_mean + Temperatura_Krvavec_mean + Hitrost_vetra_max + Vlaga_min + Padavine_sum + Temperatura_Krvavec_max + Glob_sevanje_max + Season, ucnamnozica, minsplit = 50, cp = 0.01);
 predicted <- predict(model, testnamnozica);
@@ -256,7 +239,21 @@ rmae(observed, predicted, mean(testnamnozica$O3));
 mse(observed, predicted);
 rmse(observed, predicted, mean(testnamnozica$O3));
 
+#----------------------------------------------------------------------------------PM10
+
+ucnamnozica = data[data$Year <= 2014,];
+testnamnozica = data[data$Year > 2014 && data$Year <= 2015, ];
+validacijskamnozica = data[data$Year > 2015,];
+
 observed = testnamnozica$PM10;
+observed2 = validacijskamnozica$PM10;
+
+ucnamnozica$O3 <- NULL;
+testnamnozica$O3 <- NULL;
+testnamnozica$PM10 <- NULL;
+validacjskamnozica$O3 <- NULL;
+validacijskamnozica$PM10 <- NULL;
+
 
 model <- rpart(ucnamnozica$PM10 ~ Temperatura_lokacija_max + Hitrost_vetra_min + Month + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, ucnamnozica, minsplit = 100, cp = 0.001);
 predicted <- predict(model, testnamnozica);
@@ -269,5 +266,4 @@ rmse(observed, predicted, mean(testnamnozica$PM10));
 plot(model);text(model, pretty = 0);
 
 rpart.control()
-
 
