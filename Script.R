@@ -1,7 +1,8 @@
 setwd("GitHub/vreme_seminarska/");
 rm(list = ls());
 library(CORElearn);
-library(rpart);library(zoo)
+library(rpart);
+library(zoo);
 source("wrapper.R");
 
 getSeason <- function(DATES) {
@@ -197,9 +198,9 @@ sum(diag(t)) / sum(t);
 #plot(dt);
 #text(dt, pretty = 0);
 
--#----------------------------------------------------------------------regresija
+#----------------------------------------------------------------------------------- ostalo / regresija
 
-#------------------------------------------------ regression evaluation equations
+#regression evaluation equations
 mae <- function(observed, predicted)
 {
 	mean(abs(observed - predicted))
@@ -220,9 +221,8 @@ rmse <- function(observed, predicted, mean.val)
 	sum((observed - predicted)^2)/sum((observed - mean.val)^2)
 }
 
-#----------------------------------------------------------attribute setup
+#attribute setup
 data = read.table("podatkiSem1.txt", header = TRUE, sep = ",");
-
 
 #Remove attribute Glob_sevanje_min as it's always 0
 data$Glob_sevanje_min <- NULL;
