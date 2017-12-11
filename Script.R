@@ -61,7 +61,8 @@ data$O3 <- NULL;
 data$PM10 <- NULL;
 
 ucnamnozica = data[data$Year <= 2014,];
-testnamnozica = data[data$Year > 2014,];
+testnamnozica = data[data$Year > 2014 && data$Year <= 2015, ];
+validacijskamnozica = data[data$Year > 2015,];
 
 #----------------------------------------------------------------------------------- data setup / ocenjevanje atributov
 
@@ -207,7 +208,8 @@ data$Year = as.numeric(format(data$Datum, "%Y"));
 data$Season = factor(getSeason(data$Datum), levels=c("Zima", "Pomlad", "Poletje", "Jesen"));
 
 ucnamnozica = data[data$Year <= 2014,];
-testnamnozica = data[data$Year > 2014,];
+testnamnozica = data[data$Year > 2014 && data$Year <= 2015, ];
+validacijskamnozica = data[data$Year > 2015,];
 
 observed = testnamnozica$O3;
 
