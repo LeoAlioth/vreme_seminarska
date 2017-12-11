@@ -121,7 +121,6 @@ sort(attrEval(PM10Class ~ ., ucnamnozica, "ReliefFexpRank"), decreasing = TRUE)
 wrapper(ucnamnozica, className="O3Class", classModel="rf", folds=10)
 wrapper(ucnamnozica, className="PM10Class", classModel="tree", folds=10)
 
-
 #----------------------------------------------------------------------------------- ocenjevanje atributov / predikcija
 
 #O3Class
