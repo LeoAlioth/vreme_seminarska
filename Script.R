@@ -167,6 +167,11 @@ predicted <- predict(model, testnamnozica, type = "class");
 t <- table(observed, predicted);
 sum(diag(t)) / sum(t);
 
+observed <- validacijskamnozica$O3Class;
+predicted <- predict(model, validacijskamnozica, type = "class");
+t <- table(observed, predicted);
+sum(diag(t)) / sum(t);
+
 #PM10Class
 #rpart decision tree
 model <- rpart(PM10Class ~ Temperatura_lokacija_max + Hitrost_vetra_min + O3Class + Month + Year + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, data = ucnamnozica);
@@ -192,6 +197,11 @@ model <- CoreModel(PM10Class~ ., data = ucnamnozica, model="rf");
 
 observed <- testnamnozica$PM10Class;
 predicted <- predict(model, testnamnozica, type = "class");
+t <- table(observed, predicted);
+sum(diag(t)) / sum(t);
+
+observed <- validacijskamnozica$PM10Class;
+predicted <- predict(model, validacijskamnozica, type = "class");
 t <- table(observed, predicted);
 sum(diag(t)) / sum(t);
 
@@ -449,7 +459,4 @@ mae(observed2, predicted);
 rmae(observed2, predicted, mean(validacijskamnozica$PM10));
 mse(observed2, predicted);
 rmse(observed2, predicted, mean(validacijskamnozica$PM10));
-plot(model);text(model, pretty = 0);
-
-rpart.control()
 
