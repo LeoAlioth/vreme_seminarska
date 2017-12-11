@@ -303,10 +303,15 @@ validacijskamnozica$PM10 <- NULL;
 model <- rpart(ucnamnozica$PM10 ~ Temperatura_lokacija_max + Hitrost_vetra_min + Month + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, ucnamnozica, minsplit = 100, cp = 0.001);
 predicted <- predict(model, testnamnozica);
 mae(observed, predicted);
-rmae(observed, predicted, mean(testnamnozica$PM10));
+rmae(observed, predicted, mean(observed));
 mse(observed, predicted);
-rmse(observed, predicted, mean(testnamnozica$PM10));
+rmse(observed, predicted, mean(observed));
 
+predicted <- predict(model, validacijskamnozica);
+mae(observed2, predicted);
+rmae(observed2, predicted, mean(observed2));
+mse(observed2, predicted);
+rmse(observed2, predicted, mean(observed2));
 
 plot(model);text(model, pretty = 0);
 
