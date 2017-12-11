@@ -2,6 +2,7 @@ setwd("GitHub/vreme_seminarska/");
 rm(list = ls());
 library(CORElearn);
 library(rpart);
+library(ipred);
 source("wrapper.R");
 
 getSeason <- function(DATES) {
@@ -159,4 +160,7 @@ sum(diag(t)) / sum(t);
 
 #plot(dt);
 #text(dt, pretty = 0);
+
+#----------------------------------------------------------------------regresija
+
 
