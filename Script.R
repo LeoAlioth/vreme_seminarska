@@ -1,4 +1,5 @@
 setwd("GitHub/vreme_seminarska/");
+Sys.setlocale("LC_TIME", "Slovenian_Slovenia.1250");
 rm(list = ls());
 library(CORElearn);
 library(rpart);
@@ -39,10 +40,10 @@ data$Glob_sevanje_min <- NULL;
 data$Datum = as.Date(data$Datum);
 
 #Add attribute Weekday
-data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "èetrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
+data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "cetrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
 
 #Add attribute Month
-data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "october", "november", "december"), ordered=TRUE);
+data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "oktober", "november", "december"), ordered=TRUE);
 
 #Add attribute Year
 data$Year = as.numeric(format(data$Datum, "%Y"));
@@ -59,11 +60,14 @@ data$PM10Class = factor(getPM10concentration(data$PM10), levels=c("NIZKA", "VISO
 data$Year_mon = as.yearmon(data$Datum)
 
 data$Datum <- NULL;
-data$O3 <- NULL;
-data$PM10 <- NULL;
 
 ucnamnozica = data[data$Year <= 2014,];
-testnamnozica = data[data$Year > 2014,];
+testnamnozica = data[data$Year > 2014 && data$Year <= 2015, ];
+validacijskamnozica = data[data$Year > 2015,];
+
+testnamnozica$O3 <- NULL;
+testnamnozica$PM10 <- NULL;
+
 
 #----------------------------------------------------------------------------------- data setup / vizualizacija
 
@@ -197,9 +201,15 @@ sum(diag(t)) / sum(t);
 #plot(dt);
 #text(dt, pretty = 0);
 
-#----------------------------------------------------------------------------------- ostalo / regresija
+#----------------------------------------------------------------------regresija
 
-#regression evaluation equations
+rm(list = ls());
+library(CORElearn);
+library(rpart);
+library(ipred);
+source("wrapper.R");
+
+#------------------------------------------------ regression evaluation equations
 mae <- function(observed, predicted)
 {
 	mean(abs(observed - predicted))
@@ -220,8 +230,10 @@ rmse <- function(observed, predicted, mean.val)
 	sum((observed - predicted)^2)/sum((observed - mean.val)^2)
 }
 
-#attribute setup
+#----------------------------------------------------------attribute setup
+
 data = read.table("podatkiSem1.txt", header = TRUE, sep = ",");
+
 
 #Remove attribute Glob_sevanje_min as it's always 0
 data$Glob_sevanje_min <- NULL;
@@ -230,10 +242,10 @@ data$Glob_sevanje_min <- NULL;
 data$Datum = as.Date(data$Datum);
 
 #Add attribute Weekday
-data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "èetrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
+data$Weekday = factor(weekdays(data$Datum), levels=c("ponedeljek", "torek", "sreda", "etrtek", "petek", "sobota", "nedelja"), ordered=TRUE);
 
 #Add attribute Month
-data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "october", "november", "december"), ordered=TRUE);
+data$Month = factor(months(data$Datum), levels=c("januar", "februar", "marec", "april", "maj", "junij", "julij", "avgust", "september", "oktober", "november", "december"), ordered=TRUE);
 
 #Add attribute Year
 data$Year = as.numeric(format(data$Datum, "%Y"));
@@ -241,19 +253,52 @@ data$Year = as.numeric(format(data$Datum, "%Y"));
 #Add attribute Season
 data$Season = factor(getSeason(data$Datum), levels=c("Zima", "Pomlad", "Poletje", "Jesen"));
 
+data$Datum <- NULL;
+
+#---------------------------------------------------------------------------------O3
+
 ucnamnozica = data[data$Year <= 2014,];
-testnamnozica = data[data$Year > 2014,];
+testnamnozica = data[data$Year > 2014 & data$Year <= 2015, ];
+validacijskamnozica = data[data$Year > 2015,];
 
 observed = testnamnozica$O3;
+observed2 = validacijskamnozica$O3;
+
+ucnamnozica$PM10 <- NULL;
+testnamnozica$O3 <- NULL;
+testnamnozica$PM10 <- NULL;
+validacjskamnozica$O3 <- NULL;
+validacijskamnozica$PM10 <- NULL;
 
 model <- rpart(ucnamnozica$O3 ~ Month + Temperatura_lokacija_max + Vlaga_max + Sunki_vetra_max + Pritisk_max + Sunki_vetra_min + Padavine_mean + Glob_sevanje_mean + Weekday + Temperatura_Krvavec_min + Sunki_vetra_mean + Temperatura_Krvavec_mean + Hitrost_vetra_max + Vlaga_min + Padavine_sum + Temperatura_Krvavec_max + Glob_sevanje_max + Season, ucnamnozica, minsplit = 50, cp = 0.01);
+
 predicted <- predict(model, testnamnozica);
 mae(observed, predicted);
-rmae(observed, predicted, mean(testnamnozica$O3));
+rmae(observed, predicted, mean(observed));
 mse(observed, predicted);
-rmse(observed, predicted, mean(testnamnozica$O3));
+rmse(observed, predicted, mean(observed));
+
+predicted <- predict(model, validacijskamnozica);
+mae(observed2, predicted);
+rmae(observed2, predicted, mean(observed2));
+mse(observed2, predicted);
+rmse(observed2, predicted, mean(observed2));
+
+#----------------------------------------------------------------------------------PM10
+
+ucnamnozica = data[data$Year <= 2014,];
+testnamnozica = data[data$Year > 2014 && data$Year <= 2015, ];
+validacijskamnozica = data[data$Year > 2015,];
 
 observed = testnamnozica$PM10;
+observed2 = validacijskamnozica$PM10;
+
+ucnamnozica$O3 <- NULL;
+testnamnozica$O3 <- NULL;
+testnamnozica$PM10 <- NULL;
+validacjskamnozica$O3 <- NULL;
+validacijskamnozica$PM10 <- NULL;
+
 
 model <- rpart(ucnamnozica$PM10 ~ Temperatura_lokacija_max + Hitrost_vetra_min + Month + Padavine_sum + Temperatura_lokacija_mean + Postaja + Sunki_vetra_min + Pritisk_max + Temperatura_Krvavec_mean + Pritisk_min + Sunki_vetra_mean + Padavine_mean, ucnamnozica, minsplit = 100, cp = 0.001);
 predicted <- predict(model, testnamnozica);
@@ -266,5 +311,4 @@ rmse(observed, predicted, mean(testnamnozica$PM10));
 plot(model);text(model, pretty = 0);
 
 rpart.control()
-
 
